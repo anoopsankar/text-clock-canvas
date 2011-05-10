@@ -41,7 +41,7 @@ function init() {
     my_canvas = document.getElementById('canvas');
     canvas_ctx = my_canvas.getContext('2d');
     
-    canvas_ctx.font = "36px Courier";
+    canvas_ctx.font = '36px "FreeMono","CourierNew",monospace';
     
     update();
     setInterval(update, 1000 * 20);
