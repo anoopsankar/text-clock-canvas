@@ -26,14 +26,24 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 
-**/ 
+**/
+ 
+//                          0         1        2        3         4 
+var clockface = new Array('IT',     'L',     'IS',     'ASTIME', 'AC',           // 0
+                           'QUARTER','DC',    'TWENTY', 'FIVE',   'X',            // 5
+                           'HALF',   'B',     'TEN',    'FBO',    'PAST',         // 10
+                           'TO',     'U',     'NINE',   'ONE',    'SIX',          // 15
+                           'THREE',  'FOUR',  'FIVE',   'TWO',    'EIGHT',        // 20
+                           'ELEVEN', 'SEVEN', 'TWELVE', 'TEN',    'S',            // 25
+                           "O'CLOCK");
 
+var hour_indices   = new Array(-1, 18, 23, 20, 21, 22, 19, 26, 24, 17, 28, 25, 27);
+var minute_indices = new Array(30, 8, 12,  5,  7, [7,8], 10); 
+var past_index     = 14;
+var to_index       = 15;
 
-
-var words = "IT,L,IS,AS,TIME,A,C,QUARTER,DC,TWENTY,NEAR,X,HALF,B,TEN,F,TO,PAST,ERU,NINE,ONE,SIX,THREE,FOUR,FIVE,TWO,EIGHT,ELEVEN,SEVEN,TWELVE,LEN,S,O'CLOCK".split(',');
-var numbers = "ZERO,ONE,TWO,THREE,FOUR,FIVE,SIX,SEVEN,EIGHT,NINE,TEN,ELEVEN,TWELVE".split(',');
-var minute_desc = "O'CLOCK:NEAR:NEAR:QUARTER:TWENTY:HALF:HALF".split(':');
-var joiners = "PAST,TO".split(',');
+var STYLE_HIGHLIGHT = '#dedede';
+var STYLE_NORMAL    = '#282828';
 
 var canvas_ctx;
 
@@ -42,73 +52,96 @@ function init() {
     canvas_ctx = my_canvas.getContext('2d');
     
     canvas_ctx.font = '36px "FreeMono","CourierNew",monospace';
-    
+        
     update();
     setInterval(update, 1000 * 20);
 }
 
+// Function to update time, called every 20 secs. 
+//
 function update() {
-    draw_clock(parse_time());
+    draw_text(canvas_ctx, clockface, format_time_highlight());
 }
 
-function parse_time() {
-    var currentTime = new Date();
+// Formats the time and returns an array index for 
+// highlighting required words in the clockface
+//
+function format_time_highlight() {
     
-    var hours = currentTime.getHours();
-    var minutes = currentTime.getMinutes();
+    var current_time = new Date();
     
+    hours = current_time.getHours();
+    minutes = current_time.getMinutes();
+       
     if (hours > 12) hours = hours - 12;
+    is_past_half_hour = (minutes > 30);
     
-    var time_string = "IT,IS,";
-    
-    if (minutes < 35) {
-        minute_index = Math.round(minutes / 5) ;
-        time_string += minute_desc[minute_index];
-        if (minute_index != 0) 
-            time_string += ",PAST,";
-        else 
-            time_string += ",";
-            
-        time_string += numbers[hours];
-    } else {
-        minute_index = Math.round((60 - minutes) / 5) ;
-        time_string += minute_desc[minute_index];
-        if (minute_index != 0) 
-            time_string += ",TO,";
-        else
-            time_string += ",";
-        time_string += numbers[hours + 1];
+    if (is_past_half_hour) {
+        minutes = 60 - minutes;
+        hours++;
     }
     
-    console.log(time_string);
-    return time_string.split(',');
+    highlight = [0, 2];   // "IT IS"
+    minute_index = Math.round(minutes / 5);
+    
+    if (minute_indices[minute_index] instanceof Array) {
+        highlight = highlight.concat(minute_indices[minute_index]);
+    } else {
+        highlight.push (minute_indices[minute_index]);
+    }
+    
+    highlight.push (hour_indices[hours]);
+    
+    if (minute_index != 0) {
+        if (is_past_half_hour) {
+            highlight.push (to_index);
+        } else {
+            highlight.push (past_index); 
+        }
+    }
+    
+    return highlight;
 }
 
 
-function draw_clock(highlighted_words) {
+// Draws the clockface text on screen.
+//  * context   : a canvas 2D context
+//  * face      : the complete text to be displayed as an array of words
+//  * highlight : array of indices to the 'face' array, for words to be highlighted
+
+function draw_text(context, face, highlight) {
+
+    context.clearRect(0, 0, 500, 1000)   // workaround to clear canvas.
     
-    canvas_ctx.clearRect(0,0,500,1000); // clear canvas  
+    x = 10; y = 40;
+    line_char_count = 0;
     
-    x = 50;
-    y = 50;
-    char_count = 0;
+    // Bonus: While I did this; learnt that you musn't use for..in for array iterations.
+    // https://developer.mozilla.org/en/JavaScript/Reference/Statements/for...in#Description    
     
-    for (i in words) {
-        if (highlighted_words.indexOf(words[i]) == -1) {
-            canvas_ctx.fillStyle = '#282828';
+    for (i = 0; i < face.length; i++) {
+        
+        if (highlight.indexOf(i) != -1) {
+            context.shadowColor = "#FFF"
+            context.shadowOffsetX = 0;
+            context.shadowOffsetY = 0;
+            context.shadowBlur = 2;
+            context.fillStyle = STYLE_HIGHLIGHT;
         } else {
-            canvas_ctx.fillStyle = '#DEDEDE';
+            context.shadowBlur = 0;
+            context.fillStyle = STYLE_NORMAL;
         }
         
-        canvas_ctx.fillText(words[i], x, y);
-        x += canvas_ctx.measureText(words[i]).width;
+        context.fillText(face[i], x, y);
+        x += context.measureText(face[i]).width;
         
-        char_count += words[i].length;
+        line_char_count += face[i].length;
         
-        if (char_count > 10) {
-            char_count = 0;
+        // this is probably how real gfx programmers do a line feed. :|
+        if (line_char_count > 10) {
+            line_char_count = 0;
             y += 40;
-            x = 50;
+            x = 10;
         }
     }
 }
