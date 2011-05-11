@@ -61,6 +61,7 @@ function init() {
 //
 function update() {
     draw_text(canvas_ctx, clockface, format_time_highlight());
+    //draw_fraction_dots(canvas_ctx);
 }
 
 // Formats the time and returns an array index for 
@@ -122,10 +123,10 @@ function draw_text(context, face, highlight) {
     for (i = 0; i < face.length; i++) {
         
         if (highlight.indexOf(i) != -1) {
-            context.shadowColor = "#FFF"
+            context.shadowColor = "#FF00FF"
             context.shadowOffsetX = 0;
             context.shadowOffsetY = 0;
-            context.shadowBlur = 10;
+            context.shadowBlur = 5;
             context.fillStyle = STYLE_HIGHLIGHT;
         } else {
             context.shadowBlur = 0;
@@ -143,5 +144,25 @@ function draw_text(context, face, highlight) {
             y += 40;
             x = 10;
         }
+    }
+}
+
+function draw_fraction_dots(context) {
+    var current_time = new Date();
+    num_dots = current_time.getMinutes() % 5;
+    console.log(num_dots);
+    
+    for (i = 1; i <= 5; i++) {
+        if (i <= num_dots) { 
+            context.fillStyle = STYLE_HIGHLIGHT;
+        } else {
+            context.fillStyle = STYLE_NORMAL;
+        }
+                
+        context.beginPath();
+        context.arc(10 + (i * 10), 10, 2, 0, Math.PI*2, true);
+        context.closePath();
+                
+        context.fill();
     }
 }
