@@ -125,7 +125,7 @@ function draw_text(context, face, highlight) {
             context.shadowColor = "#FFF"
             context.shadowOffsetX = 0;
             context.shadowOffsetY = 0;
-            context.shadowBlur = 2;
+            context.shadowBlur = 10;
             context.fillStyle = STYLE_HIGHLIGHT;
         } else {
             context.shadowBlur = 0;
