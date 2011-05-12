@@ -37,7 +37,7 @@ var clockface = new Array('IT',     'L',     'IS',     'ASTIME', 'AC',          
                            'ELEVEN', 'SEVEN', 'TWELVE', 'TEN',    'S',            // 25
                            "O'CLOCK");
 
-var hour_indices   = new Array(-1, 18, 23, 20, 21, 22, 19, 26, 24, 17, 28, 25, 27);
+var hour_indices   = new Array(27, 18, 23, 20, 21, 22, 19, 26, 24, 17, 28, 25, 27);
 var minute_indices = new Array(30, 8, 12,  5,  7, [7,8], 10); 
 var past_index     = 14;
 var to_index       = 15;
@@ -74,7 +74,7 @@ function format_time_highlight() {
     hours = current_time.getHours();
     minutes = current_time.getMinutes();
        
-    if (hours > 12) hours = hours - 12;
+    if (hours >= 12) hours = hours - 12;
     is_past_half_hour = (minutes > 30);
     
     if (is_past_half_hour) {
@@ -90,7 +90,7 @@ function format_time_highlight() {
     } else {
         highlight.push (minute_indices[minute_index]);
     }
-    
+    console.log("Hours:", hours);
     highlight.push (hour_indices[hours]);
     
     if (minute_index != 0) {
